@@ -4,6 +4,7 @@
 
   export let path = "";
   export let component = null;
+  export let preserve = false;
 
   const { registerRoute, unregisterRoute, activeRoute } = getContext(ROUTER);
   const location = getContext(LOCATION);
@@ -37,6 +38,15 @@
   }
 </script>
 
+{#if preserve}
+<span style:display={$activeRoute !== null && $activeRoute.route === route ? null : "none"}>
+  {#if component !== null}
+    <svelte:component this="{component}" location={$location} {...routeParams} {...routeProps}  />
+  {:else}
+    <slot params="{routeParams}" location={$location}></slot>
+  {/if}
+</span>
+{:else}
 {#if $activeRoute !== null && $activeRoute.route === route}
   {#if component !== null}
     <svelte:component this="{component}" location={$location} {...routeParams} {...routeProps}  />
@@ -44,3 +54,6 @@
     <slot params="{routeParams}" location={$location}></slot>
   {/if}
 {/if}
+{/if}
+
+
