@@ -1,5 +1,6 @@
 <script>
   import { getContext, onDestroy } from "svelte";
+  import { writable } from "svelte/store";
   import { ROUTER, LOCATION } from "./contexts.js";
 
   export let path = "";
@@ -13,7 +14,7 @@
     path,
     // If no path prop is given, this Route will act as the default Route
     // that is rendered if no other Route in the Router is a match.
-    default: path === ""
+    default: path === "",
   };
   let routeParams = {};
   let routeProps = {};
@@ -36,24 +37,25 @@
       unregisterRoute(route);
     });
   }
+
+  let mount_writable = writable(null);
+
+  $: visible = $activeRoute !== null && $activeRoute.route === route;
+  $: if (preserve) $mount_writable = visible;
 </script>
 
 {#if preserve}
-<span style:display={$activeRoute !== null && $activeRoute.route === route ? null : "none"}>
+  <span style:display={visible ? null : "none"}>
+    {#if component !== null}
+      <svelte:component this={component} location={$location} {...routeParams} {...routeProps} />
+    {:else}
+      <slot writable={mount_writable} params={routeParams} location={$location} />
+    {/if}
+  </span>
+{:else if visible}
   {#if component !== null}
-    <svelte:component this="{component}" location={$location} {...routeParams} {...routeProps}  />
+    <svelte:component this={component} location={$location} {...routeParams} {...routeProps} />
   {:else}
-    <slot params="{routeParams}" location={$location}></slot>
-  {/if}
-</span>
-{:else}
-{#if $activeRoute !== null && $activeRoute.route === route}
-  {#if component !== null}
-    <svelte:component this="{component}" location={$location} {...routeParams} {...routeProps}  />
-  {:else}
-    <slot params="{routeParams}" location={$location}></slot>
+    <slot params={routeParams} location={$location} />
   {/if}
 {/if}
-{/if}
-
-
